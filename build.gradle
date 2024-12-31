@@ -54,12 +54,12 @@ runs {
     }
 
     client {
-        workingDirectory project.file('run-client')
+        workingDirectory project.file('runs/client')
         systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
     }
 
     server {
-        workingDirectory project.file('run-server')
+        workingDirectory project.file('runs/server')
         systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
         getArguments().addAll('--nogui')
     }
@@ -68,12 +68,13 @@ runs {
     // By default, the server will crash when no gametests are provided.
     // The gametest system is also enabled by default for other run configs under the /test command.
     gameTestServer {
+        workingDirectory project.file('runs/gameTestServer')
         systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
     }
 
     clientData {
         // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-        workingDirectory project.file('run-data')
+        workingDirectory project.file('runs/clientData')
 
         // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
         getArguments().addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
