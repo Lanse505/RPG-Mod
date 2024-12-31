@@ -1,0 +1,7 @@
+{
+  "type": "rpg:default",
+  "identifier": "rpg.test_4",
+  "minimumLevel": 0,
+  "maximumLevel": 5,
+  "defaultLevel": 3
+}

@@ -1,0 +1,13 @@
+/test
+/rpg jobs add test
+/rpg jobs remove test
+/rpg jobs add test
+/rpg jobs remove test
+/rpg jobs clear
+/rpg jobs add rpg:test_1
+/rpg jobs clear
+/rpg job add rpg:test_1
+/rpg job remove rpg:test_1
+/rpg job add rpg:test_1
+/rpg job remove rpg:test_1
+/rpg job add rpg:test_1
