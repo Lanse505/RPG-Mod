@@ -1,4 +1,4 @@
-package lanse505.rpg.server.command.impl.job;
+package lanse505.rpg.server.command.job;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -6,27 +6,27 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lanse505.rpg.RPG;
-import lanse505.rpg.api.sheet.ICharacterSheet;
+import lanse505.rpg.api.sheet.ICharacterSheetAccessor;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
 
-public class ClearJob implements Command<CommandSourceStack>
+public class ClearJobs implements Command<CommandSourceStack>
 {
   public static LiteralArgumentBuilder<CommandSourceStack> registerClear(CommandDispatcher<CommandSourceStack> dispatcher)
   {
-    return Commands.literal("clear").executes(ClearJob::clearJob);
+    return Commands.literal("clear").executes(ClearJobs::clearJobs);
   }
 
-  private static int clearJob(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+  private static int clearJobs(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
   {
     ServerPlayer target = context.getSource().getPlayerOrException();
-    ICharacterSheet sheet = target.getCapability(ICharacterSheet.CAPABILITY);
+    ICharacterSheetAccessor sheet = target.getCapability(ICharacterSheetAccessor.CAPABILITY);
     if (sheet == null) return error(target, "ICharacterSheer Capability was Null!");
     try
     {
-      sheet.clearJobs();
-      if (sheet.isDebug()) RPG.LOGGER.info("Debug: Successfully cleared Jobs for Player {}", target.getName().getContents());
+      sheet.clearJobs(target);
+      if (sheet.isDebug(target)) RPG.LOGGER.info("Debug: Successfully cleared Jobs for Player {}", target.getName().getContents());
     } catch (Exception e)
     {
       return error(target, "Error: Failed to clear jobs for player, this shouldn't happen!");

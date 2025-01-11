@@ -1,22 +1,19 @@
 package lanse505.rpg;
 
-import lanse505.rpg.api.RPGRegistries;
-import lanse505.rpg.api.registrar.JobTypeRegistrar;
-import lanse505.rpg.api.sheet.ICharacterSheet;
-import lanse505.rpg.common.config.Config;
-import lanse505.rpg.common.sheet.CharacterSheet;
-import lanse505.rpg.common.util.RPGCapabilities;
-import lanse505.rpg.server.RPGServer;
-import lanse505.rpg.server.command.RPGCommands;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
-import net.minecraft.world.entity.EntityType;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.capabilities.EntityCapability;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import lanse505.rpg.api.network.packets.SyncSheetDataPayload;
+import lanse505.rpg.api.registrar.registrar.AttachmentRegistrar;
+import lanse505.rpg.api.registrar.RPGRegistrar;
+import lanse505.rpg.api.sheet.CharacterSheetData;
+import lanse505.rpg.api.sheet.ICharacterSheetAccessor;
+import lanse505.rpg.api.sheet.Jobs;
+import lanse505.rpg.api.util.RPGConstants;
+import lanse505.rpg.server.RPGCommands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -24,64 +21,60 @@ import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
-/**
- * TODO:
- *  -
- */
-@Mod(RPG.MODID)
+@Mod(RPGConstants.MODID)
 public class RPG
 {
-    public static final String MODID = "rpg";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static ResourceLocation create(String path)
-    {
-        return ResourceLocation.tryBuild(MODID, path);
-    }
-
     public RPG(IEventBus bus, ModContainer container)
     {
-        bus.addListener(RPGCapabilities::registerCapabilities);
-        bus.addListener(RPGRegistries::registerRegistries);
-        bus.addListener(RPGRegistries::registerDatapackRegistries);
-        JobTypeRegistrar.init(bus);
-        container.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-        NeoForge.EVENT_BUS.addListener(RPG::onWorldTick);
+        RPGRegistrar.register(bus);
+        NeoForge.EVENT_BUS.addListener(RPG::onLoggedIn);
+        NeoForge.EVENT_BUS.addListener(RPG::doesSheetsWork);
+        NeoForge.EVENT_BUS.addListener(RPG::cloneDataOnDeath);
         NeoForge.EVENT_BUS.addListener(RPG::registerCommands);
-        // TODO: Uncomment this once we add Client-stuff
-        /*
-            if (FMLEnvironment.dist == Dist.CLIENT)
-            {
-
-            }
-         */
     }
 
-    private static void registerCommands(RegisterCommandsEvent event)
+    private static void registerCommands(final RegisterCommandsEvent event)
     {
         RPGCommands.registerCommands(event.getDispatcher());
     }
 
-    private static boolean hasTicked = false;
-    private static void onWorldTick(PlayerTickEvent.Post event)
+    private static void doesSheetsWork(final PlayerTickEvent.Post event)
     {
-       if (!hasTicked)
-       {
-           try
-           {
-               LOGGER.info("boop");
-               event.getEntity().level()
-                       .registryAccess()
-                       .lookupOrThrow(RPGRegistries.JOBS)
-                       .keySet().forEach(rl -> LOGGER.info(rl.toString()));
-               hasTicked = true;
-           } catch (Exception ignored) {}
-       }
+        Player player = event.getEntity();
+        if (player.tickCount % 100 == 0)
+        {
+            LOGGER.info("Has Capability: {}", player.getCapability(ICharacterSheetAccessor.CAPABILITY) != null);
+            LOGGER.info("Has Data: {}", player.hasData(AttachmentRegistrar.CHARACTER_SHEET));
+            if (player.hasData(AttachmentRegistrar.CHARACTER_SHEET))
+            {
+                CharacterSheetData data = player.getData(AttachmentRegistrar.CHARACTER_SHEET);
+                Jobs jobs = data.getJobs();
+                jobs.jobLevelMap.keySet().forEach(job -> LOGGER.info(job.getIdentifier()));
+            }
+        }
+    }
 
+    private static void onLoggedIn(final PlayerEvent.PlayerLoggedInEvent event)
+    {
+        Player player = event.getEntity();
+        if (player instanceof ServerPlayer serverPlayer) {
+            if (!player.hasData(AttachmentRegistrar.CHARACTER_SHEET)) {
+                player.setData(AttachmentRegistrar.CHARACTER_SHEET, new CharacterSheetData());
+            }
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncSheetDataPayload(player.getData(AttachmentRegistrar.CHARACTER_SHEET)));
+        }
+    }
+
+    private static void cloneDataOnDeath(final PlayerEvent.Clone event)
+    {
+        if (event.isWasDeath() && event.getOriginal().hasData(AttachmentRegistrar.CHARACTER_SHEET))
+        {
+            event.getEntity().setData(AttachmentRegistrar.CHARACTER_SHEET, event.getOriginal().getData(AttachmentRegistrar.CHARACTER_SHEET));
+        }
     }
 }

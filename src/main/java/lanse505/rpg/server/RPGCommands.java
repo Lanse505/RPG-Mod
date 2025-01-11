@@ -1,7 +1,7 @@
-package lanse505.rpg.server.command;
+package lanse505.rpg.server;
 
 import com.mojang.brigadier.CommandDispatcher;
-import lanse505.rpg.server.command.impl.JobCommand;
+import lanse505.rpg.server.command.JobCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 

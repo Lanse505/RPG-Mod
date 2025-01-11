@@ -43,7 +43,7 @@ runs {
         // "SCAN": For mods scan.
         // "REGISTRIES": For firing of registry events.
         // "REGISTRYDUMP": For getting the contents of all registries.
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.markers', 'REGISTRYDUMP'
 
         // Recommended logging level for the console
         // You can set various levels here.

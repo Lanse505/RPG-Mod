@@ -1,4 +1,4 @@
-package lanse505.rpg.server.command.impl.job;
+package lanse505.rpg.server.command.job;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -6,49 +6,49 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lanse505.rpg.RPG;
-import lanse505.rpg.api.RPGRegistries;
-import lanse505.rpg.api.sheet.ICharacterSheet;
-import lanse505.rpg.api.sheet.job.IJob;
-import lanse505.rpg.server.command.RPGCommandUtils;
+import lanse505.rpg.api.job.IJob;
+import lanse505.rpg.api.registrar.registries.RPGRegistries;
+import lanse505.rpg.api.sheet.ICharacterSheetAccessor;
+import lanse505.rpg.server.RPGCommandUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceKeyArgument;
 import net.minecraft.core.Holder;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 
-public class AddJob implements Command<CommandSourceStack>
+public class RemoveJob implements Command<CommandSourceStack>
 {
 
-  public static LiteralArgumentBuilder<CommandSourceStack> registerAdd(CommandDispatcher<CommandSourceStack> dispatcher)
+  public static LiteralArgumentBuilder<CommandSourceStack> registerRemove(CommandDispatcher<CommandSourceStack> dispatcher)
   {
-    return Commands.literal("add")
+    return Commands.literal("remove")
             .then(Commands.argument("job", ResourceKeyArgument.key(RPGRegistries.JOBS))
                     .suggests((ctx, builder) -> RPGCommandUtils.getRegistrySuggestions(ctx, builder, RPGRegistries.JOBS))
-                    .executes(AddJob::addJob));
+                    .executes(RemoveJob::removeJob));
   }
 
-  private static int addJob(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+  private static int removeJob(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
   {
     ServerPlayer target = context.getSource().getPlayerOrException();
-    ICharacterSheet sheet = target.getCapability(ICharacterSheet.CAPABILITY);
+    ICharacterSheetAccessor sheet = target.getCapability(ICharacterSheetAccessor.CAPABILITY);
     if (sheet == null) return error(context.getArgument("job", ResourceKey.class), target, "ICharacterSheer Capability was Null!");
-    ResourceKey<IJob> key = context.getArgument("job", ResourceKey.class);
-    try {
+    try
+    {
+      ResourceKey<IJob> key = context.getArgument("job", ResourceKey.class);
       Holder.Reference<IJob> job = target.level().registryAccess().lookupOrThrow(RPGRegistries.JOBS).getOrThrow(key);
-      boolean success = sheet.addJob(job.value());
-      if (success) target.sendSystemMessage(Component.literal(String.format("Successfully Added Job[%s] to Player[%s]", key.location(), target.getName().getContents())), true);
-      return success ? 1 : 0;
+      sheet.removeJob(target, job.value());
+      if (sheet.isDebug(target)) RPG.LOGGER.info("Debug: Successfully removed Job {} to Player {}", job.key(), target.getName().getContents());
     } catch (Exception e)
     {
-      return error(key, target, "Error: Failed to apply job to player, this shouldn't happen!");
+      return error(context.getArgument("job", ResourceKey.class), target, "Error: Failed to remove job from player, this shouldn't happen!");
     }
+    return 1;
   }
 
   private static int error(ResourceKey<?> job, ServerPlayer player, String reason)
   {
-    RPG.LOGGER.error("Failed to add Job {}, to player {}, because {}", job, player, reason);
+    RPG.LOGGER.error("Failed to remove Job {}, to player {}, because {}", job, player, reason);
     return 0;
   }
 
@@ -57,5 +57,4 @@ public class AddJob implements Command<CommandSourceStack>
   {
     return 1;
   }
-
 }

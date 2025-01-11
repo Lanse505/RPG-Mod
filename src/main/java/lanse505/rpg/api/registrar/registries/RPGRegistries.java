@@ -1,8 +1,8 @@
-package lanse505.rpg.api;
+package lanse505.rpg.api.registrar.registries;
 
-import lanse505.rpg.RPG;
-import lanse505.rpg.api.sheet.job.IJob;
-import lanse505.rpg.api.sheet.job.JobType;
+import lanse505.rpg.api.job.IJob;
+import lanse505.rpg.api.job.JobType;
+import lanse505.rpg.api.util.RPGUtils;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
@@ -11,9 +11,9 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
 
 public class RPGRegistries
 {
-  public static final ResourceKey<Registry<JobType>> JOB_TYPES = ResourceKey.createRegistryKey(RPG.create("job_types"));
+  public static final ResourceKey<Registry<JobType>> JOB_TYPES = ResourceKey.createRegistryKey(RPGUtils.create("job_types"));
   public static final Registry<JobType> JOB_TYPE_REGISTRY = new RegistryBuilder<>(JOB_TYPES).sync(true).create();
-  public static final ResourceKey<Registry<IJob>> JOBS = ResourceKey.createRegistryKey(RPG.create("jobs"));
+  public static final ResourceKey<Registry<IJob>> JOBS = ResourceKey.createRegistryKey(RPGUtils.create("jobs"));
 
   public static void registerRegistries(final NewRegistryEvent event)
   {
@@ -24,5 +24,4 @@ public class RPGRegistries
   {
     event.dataPackRegistry(JOBS, IJob.TYPED_CODEC, IJob.TYPED_CODEC);
   }
-
 }

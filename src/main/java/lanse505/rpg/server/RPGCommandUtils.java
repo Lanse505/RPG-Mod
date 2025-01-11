@@ -1,4 +1,4 @@
-package lanse505.rpg.server.command;
+package lanse505.rpg.server;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;

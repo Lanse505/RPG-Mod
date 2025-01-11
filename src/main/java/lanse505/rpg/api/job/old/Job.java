@@ -1,20 +1,8 @@
-package lanse505.rpg.common.sheet.job;
+package lanse505.rpg.api.job.old;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lanse505.rpg.api.sheet.job.IJob;
-import lanse505.rpg.api.sheet.job.JobType;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-
-import java.util.Objects;
-import java.util.Optional;
-
-public class Job implements IJob
+public class Job
 {
+  /*
   public static MapCodec<IJob> CODEC = RecordCodecBuilder.mapCodec(
           instance -> instance.group(
                   JobType.CODEC.fieldOf("type").forGetter(IJob::getJobType),
@@ -91,18 +79,5 @@ public class Job implements IJob
     return maximumLevel;
   }
 
-  @Override
-  public boolean equals(Object o)
-  {
-    if (!(o instanceof Job job)) {return false;}
-    return this == o || minimumLevel == job.minimumLevel && defaultLevel == job.defaultLevel && maximumLevel == job.maximumLevel && Objects.equals(type, job.type) && Objects.equals(identifier, job.identifier) && Objects.equals(translatedName, job.translatedName);
-  }
-
-
-
-  @Override
-  public int hashCode()
-  {
-    return Objects.hash(type, identifier, minimumLevel, defaultLevel, maximumLevel, translatedName);
-  }
+   */
 }
